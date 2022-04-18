@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Entry point for HolbertonBnB API calls."""
+"""Entry to point for HolbertonBnB API calls."""
 from os import getenv
 from flask import Flask
 from flask import jsonify
