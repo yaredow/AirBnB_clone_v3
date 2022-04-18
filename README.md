@@ -157,6 +157,5 @@ No known bugs at this time.
 Abrham Bunaro <https://github.com/Abrish-b>                                                                                     
 Yared Yilma  <https://github.com/yaredow/>
 
-Second part of Airbnb: Joann Vuong
 ## License
 Public Domain. No copy write protection. 
