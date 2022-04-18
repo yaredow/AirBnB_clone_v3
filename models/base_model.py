@@ -1,12 +1,16 @@
-#!/USR/bin/python3
-"""Defines the BaseModel class."""
-import models
-import sqlalchemy
-from os import getenv
-from uuid import uuid4
+#!/usr/bin/python3
+"""
+Contains class BaseModel
+"""
+
 from datetime import datetime
+import models
+from os import getenv
+import hashlib
+import sqlalchemy
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+import uuid
 
 time = "%Y-%m-%dT%H:%M:%S.%f"
 
@@ -18,21 +22,31 @@ else:
 
 class BaseModel:
     """The BaseModel class from which future classes will be derived"""
-
-    id = Column(String(60), primary_key=True, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
+    if models.storage_t == "db":
+        id = Column(String(60), primary_key=True)
+        created_at = Column(DateTime, default=datetime.utcnow)
+        updated_at = Column(DateTime, default=datetime.utcnow)
 
     def __init__(self, *args, **kwargs):
         """Initialization of the base model"""
-        self.id = str(uuid4())
-        self.created_at = self.updated_at = datetime.utcnow()
         if kwargs:
-            for k, v in kwargs.items():
-                if k == "created_at" or k == "updated_at":
-                    v = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%f")
-                if k != "__class__":
-                    setattr(self, k, v)
+            for key, value in kwargs.items():
+                if key != "__class__":
+                    setattr(self, key, value)
+            if kwargs.get("created_at", None) and type(self.created_at) is str:
+                self.created_at = datetime.strptime(kwargs["created_at"], time)
+            else:
+                self.created_at = datetime.utcnow()
+            if kwargs.get("updated_at", None) and type(self.updated_at) is str:
+                self.updated_at = datetime.strptime(kwargs["updated_at"], time)
+            else:
+                self.updated_at = datetime.utcnow()
+            if kwargs.get("id", None) is None:
+                self.id = str(uuid.uuid4())
+        else:
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.utcnow()
+            self.updated_at = self.created_at
 
     def __str__(self):
         """String representation of the BaseModel class"""
@@ -45,15 +59,17 @@ class BaseModel:
         models.storage.new(self)
         models.storage.save()
 
-    def to_dict(self, remove_password=True):
-        """Returns a dictionary containing all keys/values of the instance."""
+    def to_dict(self, password=False):
+        """returns a dictionary containing all keys/values of the instance"""
         new_dict = self.__dict__.copy()
-        new_dict["created_at"] = new_dict["created_at"].strftime(time)
-        new_dict["updated_at"] = new_dict["updated_at"].strftime(time)
+        if "created_at" in new_dict:
+            new_dict["created_at"] = new_dict["created_at"].strftime(time)
+        if "updated_at" in new_dict:
+            new_dict["updated_at"] = new_dict["updated_at"].strftime(time)
         new_dict["__class__"] = self.__class__.__name__
-        new_dict.pop("_sa_instance_state", None)
-        if remove_password is True:
-            new_dict.pop("password", None)
+        new_dict.pop('_sa_instance_state', None)
+        if not password:
+            new_dict.pop('password', None)
         return new_dict
 
     def delete(self):

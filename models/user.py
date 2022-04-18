@@ -1,10 +1,10 @@
-#!/usr/bin/python3
-"""Defines the User class."""
+#!/usr/bin/python
+""" holds class User"""
 import models
-import hashlib
-import sqlalchemy
-from os import getenv
 from models.base_model import BaseModel, Base
+import hashlib
+from os import getenv
+import sqlalchemy
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
@@ -26,12 +26,15 @@ class User(BaseModel, Base):
         last_name = ""
 
     def __init__(self, *args, **kwargs):
-        """Initializes a User."""
+        """initializes user"""
         super().__init__(*args, **kwargs)
 
-    def __setattr__(self, name, value):
-        """Encodes passwords using MD5 before setting an attribute."""
-        if name == "password":
-            value = value.encode("utf-8")
-            value = hashlib.md5(value).hexdigest()
-        object.__setattr__(self, name, value)
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, password):
+        """Hashes a user password with MD5"""
+        encryption = hashlib.md5(password.encode())
+        self._password = encryption.hexdigest()

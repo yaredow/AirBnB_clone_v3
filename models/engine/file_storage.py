@@ -42,20 +42,20 @@ class FileStorage:
 
     def save(self):
         """serializes __objects to the JSON file (path: __file_path)"""
-        odict = {}
+        json_objects = {}
         for key in self.__objects:
-            odict[key] = self.__objects[key].to_dict(remove_password=False)
-        with open(self.__file_path, "w", encoding="utf-8") as f:
-            json.dump(odict, f)
+            json_objects[key] = self.__objects[key].to_dict()
+        with open(self.__file_path, 'w') as f:
+            json.dump(json_objects, f)
 
     def reload(self):
-        """Deserializes the JSON file to __objects"""
+        """deserializes the JSON file to __objects"""
         try:
-            with open(self.__file_path, "r", encoding="utf-8") as f:
+            with open(self.__file_path, 'r') as f:
                 jo = json.load(f)
             for key in jo:
                 self.__objects[key] = classes[jo[key]["__class__"]](**jo[key])
-        except FileNotFoundError:
+        except:
             pass
 
     def delete(self, obj=None):
@@ -69,32 +69,25 @@ class FileStorage:
         """call reload() method for deserializing the JSON file to objects"""
         self.reload()
 
-    def get(self, cls, id):
-        """Get a single object from __objects
+    def get(self, cls=None, id=None):
+        """Returns obj based on class name and its ID"""
+        if cls is not None and id is not None:
+            for v in self.__objects.values():
+                if cls == v.__class__ or cls == v.__class__.__name__:
+                    if v.id == id:
+                        return v
 
-        Args:
-            cls (str): string representing the class name
-            id  (str): string representing the object ID
-
-        Returns:
-            Object base on the `class` and `id` or else `None`.
-        """
-        if cls is None or id is None:
-            return None
-        key = '{}.{}'.format(cls, id)
-        return self.__objects.get(key, None)
+        return None
 
     def count(self, cls=None):
-        """counts all objects of a specific class (cls) in __objects
-        or all objects if no `cls` name is passed
+        """Returns the amount of objects"""
+        count = 0
+        if cls is not None and cls in classes:
+            for v in self.__objects.values():
+                if cls == v.__class__ or cls == v.__class__.__name__:
+                    count += 1
+        else:
+            for i in self.__objects.values():
+                count += 1
 
-        Arsg:
-            cls (str): String representing the class name. Default (None)
-
-        Returns:
-            `count` of all object in __objects is cls is None, else `count`
-            of the specific onbject in __object.
-        """
-        if not cls:
-            return len(self.__objects)
-        return len([key for key in self.__objects if key.startswith(cls)])
+        return count
