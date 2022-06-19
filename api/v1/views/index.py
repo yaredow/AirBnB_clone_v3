@@ -1,32 +1,33 @@
 #!/usr/bin/python3
-"""Defines a status route for the HolbertonBnB API."""
-from flask import jsonify
-from flasgger import swag_from
-from models import storage
+"""index.py to connect to API"""
 from api.v1.views import app_views
+from flask import Flask, Blueprint, jsonify
+from models import storage
 
 
-@app_views.route("/status")
-@swag_from("../apidocs/status/status.yml")
-def status():
-    """Returns the server status.
-    Returns:
-        JSON object with the current server status.
-    """
+hbnbText = {
+    "amenities": "Amenity",
+    "cities": "City",
+    "places": "Place",
+    "reviews": "Review",
+    "states": "State",
+    "users": "User"
+}
+
+
+@app_views.route('/status', strict_slashes=False)
+def hbnbStatus():
+    """hbnbStatus"""
     return jsonify({"status": "OK"})
 
 
-@app_views.route("/stats")
-@swag_from("../apidocs/stats/stats.yml")
-def stats():
-    """Retrives the count of each object type.
-    Returns:
-        JSON object with the number of objects by type."""
-    return jsonify({
-        "amenities": storage.count("Amenity"),
-        "cities": storage.count("City"),
-        "places": storage.count("Place"),
-        "reviews": storage.count("Review"),
-        "states": storage.count("State"),
-        "users": storage.count("User")
-    })
+@app_views.route('/stats', strict_slashes=False)
+def hbnbStats():
+    """hbnbStats"""
+    return_dict = {}
+    for key, value in hbnbText.items():
+        return_dict[key] = storage.count(value)
+    return jsonify(return_dict)
+
+if __name__ == "__main__":
+    pass
